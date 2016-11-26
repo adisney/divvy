@@ -5,10 +5,10 @@ uri = URI('https://feeds.divvybikes.com/stations/stations.json')
 response = Net::HTTP.get(uri)
 stations = JSON.parse(response, {:symbolize_names => true})
 
-# 17
-#123
+# 17 - Division & Wood
+#123 - California & Milwaukee
+#506 - Spauling and Armitage
 departure_id = ARGV[0].to_i
-#506
 arrival_id = ARGV[1].to_i
 
 departure_station = stations[:stationBeanList].select { |s| s[:id] == departure_id }[0]
