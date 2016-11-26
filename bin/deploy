@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+
+abspath="$(cd "${0%/*}" 2>/dev/null; echo "$PWD"/"${0##*/}")"
+bin_dir=`dirname $abspath`
+root_dir=`dirname $bin_dir`
+app_name=`basename $root_dir`
+
+server=${1:-cromulence}
+
+if ! ssh $server 'whoami'; then
+  echo "Cannot log into server named $server. Ensure it is properly configured in ~/.ssh/config."
+  echo "See README.md for details"
+  exit 1
+fi
+
+if [[ ! -n $(git status --porcelain) ]]; then
+  echo "Deploying to $server"
+  git push $server:git/$app_name.git master
+else
+  git status
+fi
