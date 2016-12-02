@@ -15,23 +15,12 @@ arrival_ids = eval ARGV[1]
 departure_stations = stations[:stationBeanList].select { |s| departure_ids.include? s[:id] }
 arrival_stations = stations[:stationBeanList].select { |s| arrival_ids.include? s[:id] }
 
-message = ""
-
-departure_stations.each do | departure_station |
-  if departure_station[:availableBikes] < 3 
-    if not message.empty?
-      message += " and "
-    end
-    message += "#{departure_station[:availableBikes]} bike(s) left at #{departure_station[:stationName]}"
-  end
-end
-
-arrival_stations.each do | arrival_station |
-  if arrival_station[:availableDocks] < 4
-    if not message.empty?
-      message += " and "
-    end
-    message += "#{arrival_station[:availableDocks]} docks(s) left at #{arrival_station[:stationName]}"
+def test_threshold(station, object, threshold)
+  key = "available#{object.capitalize}s".to_sym
+  if station[key] < threshold 
+    return "#{station[key]} #{object}(s) left at #{station[:stationName]}"
+  else
+    return ""
   end
 end
 
@@ -49,6 +38,18 @@ def send_message(message)
   res.start {|http| http.request(req) }
 end
 
-if not message.empty?
-  send_message(message)
+messages = []
+
+departure_stations.each do | station |
+  messages.push test_threshold(station, "bike", 4)
+end
+
+arrival_stations.each do | station |
+  messages.push test_threshold(station, "dock", 4)
+end
+
+messages.reject!(&:empty?)
+if not messages.empty?
+  #send_message(messages.join("and"))
+  puts messages.join(" and ")
 end
