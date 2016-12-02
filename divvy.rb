@@ -1,19 +1,15 @@
 require 'net/http'
 require 'json'
 
-uri = URI('https://feeds.divvybikes.com/stations/stations.json')
-response = Net::HTTP.get(uri)
-stations = JSON.parse(response, {:symbolize_names => true})
+def get_stations()
+  uri = URI('https://feeds.divvybikes.com/stations/stations.json')
+  response = Net::HTTP.get(uri)
+  return JSON.parse(response, {:symbolize_names => true})
+end
 
-# 17 - Division & Wood
-#123 - California & Milwaukee
-#260 - Kedzie & Milwaukee
-#506 - Spauling and Armitage
-departure_ids = eval ARGV[0]
-arrival_ids = eval ARGV[1]
-
-departure_stations = stations[:stationBeanList].select { |s| departure_ids.include? s[:id] }
-arrival_stations = stations[:stationBeanList].select { |s| arrival_ids.include? s[:id] }
+def station_details(stations, ids)
+  stations[:stationBeanList].select { |s| ids.include? s[:id] }
+end
 
 def test_threshold(station, object, threshold)
   key = "available#{object.capitalize}s".to_sym
@@ -38,6 +34,18 @@ def send_message(message)
   res.start {|http| http.request(req) }
 end
 
+# 17 - Division & Wood
+#123 - California & Milwaukee
+#260 - Kedzie & Milwaukee
+#506 - Spauling and Armitage
+
+departure_ids = eval ARGV[0]
+arrival_ids = eval ARGV[1]
+
+stations = get_stations()
+departure_stations = station_details(stations, departure_ids)
+arrival_stations = station_details(stations, arrival_ids)
+
 messages = []
 
 departure_stations.each do | station |
@@ -50,5 +58,5 @@ end
 
 messages.reject!(&:empty?)
 if not messages.empty?
-  send_message(messages.join("and"))
+  send_message(messages.join(" and "))
 end
