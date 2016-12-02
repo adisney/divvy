@@ -50,6 +50,5 @@ def send_message(message)
 end
 
 if not message.empty?
-  #send_message(message)
-  puts message
+  send_message(message)
 end
