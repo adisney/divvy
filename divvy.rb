@@ -50,6 +50,5 @@ end
 
 messages.reject!(&:empty?)
 if not messages.empty?
-  #send_message(messages.join("and"))
-  puts messages.join(" and ")
+  send_message(messages.join("and"))
 end
