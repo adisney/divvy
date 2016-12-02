@@ -7,27 +7,35 @@ stations = JSON.parse(response, {:symbolize_names => true})
 
 # 17 - Division & Wood
 #123 - California & Milwaukee
+#260 - Kedzie & Milwaukee
 #506 - Spauling and Armitage
-departure_id = ARGV[0].to_i
-arrival_id = ARGV[1].to_i
+departure_ids = eval ARGV[0]
+arrival_ids = eval ARGV[1]
 
-departure_station = stations[:stationBeanList].select { |s| s[:id] == departure_id }[0]
-arrival_station = stations[:stationBeanList].select { |s| s[:id] == arrival_id }[0]
+departure_stations = stations[:stationBeanList].select { |s| departure_ids.include? s[:id] }
+arrival_stations = stations[:stationBeanList].select { |s| arrival_ids.include? s[:id] }
 
 message = ""
 
-if departure_station[:availableBikes] < 3 
-  message = "#{departure_station[:availableBikes]} bike(s) left at #{departure_station[:stationName]}"
-end
-
-if arrival_station[:availableDocks] < 4
-  if not message.empty?
-    message += " and "
+departure_stations.each do | departure_station |
+  if departure_station[:availableBikes] < 3 
+    if not message.empty?
+      message += " and "
+    end
+    message += "#{departure_station[:availableBikes]} bike(s) left at #{departure_station[:stationName]}"
   end
-  message += "#{arrival_station[:availableDocks]} docks(s) left at #{arrival_station[:stationName]}"
 end
 
-if not message.empty?
+arrival_stations.each do | arrival_station |
+  if arrival_station[:availableDocks] < 4
+    if not message.empty?
+      message += " and "
+    end
+    message += "#{arrival_station[:availableDocks]} docks(s) left at #{arrival_station[:stationName]}"
+  end
+end
+
+def send_message(message)
   url = URI.parse("https://api.pushover.net/1/messages.json")
   req = Net::HTTP::Post.new(url.path)
   req.set_form_data({
@@ -39,4 +47,9 @@ if not message.empty?
   res.use_ssl = true
   res.verify_mode = OpenSSL::SSL::VERIFY_PEER
   res.start {|http| http.request(req) }
+end
+
+if not message.empty?
+  #send_message(message)
+  puts message
 end
